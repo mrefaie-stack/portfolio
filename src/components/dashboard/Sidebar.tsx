@@ -20,7 +20,7 @@ export function Sidebar({ logout }: { logout: () => Promise<void> }) {
       <div className="mb-4 hidden items-center gap-3 px-2 lg:flex">
         <Logo />
         <div className="leading-tight">
-          <p className="text-sm font-bold text-ink">ميلا نايتس</p>
+          <p className="text-sm font-bold text-ink">MilaKnight</p>
           <p className="text-xs text-ink-3">لوحة التحكم</p>
         </div>
       </div>

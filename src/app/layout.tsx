@@ -4,7 +4,9 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: { default: "ميلا نايتس | ملفات الأعمال", template: "%s | ميلا نايتس" },
+  title: { default: "MilaKnight", template: "%s | MilaKnight" },
+  applicationName: "MilaKnight",
+  icons: { icon: "/icon.png", apple: "/apple-icon.png" },
   description:
     "وكالة تسويق رقمية تولّد الظهور، التفاعل، والمتابعين، وتوثّق أثر كل ملف أعمال كقضية ناجحة موثّقة.",
 };

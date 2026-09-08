@@ -50,7 +50,7 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
     try {
       const fd = new FormData();
       for (const f of Array.from(files)) fd.append("files", f);
-      const res = await fetch("/api/upload", { method: "POST", body: fd });
+      const res = await fetch("/api/upload?kind=image", { method: "POST", body: fd });
       const data = (await res.json()) as { urls?: string[]; error?: string };
       if (!res.ok) throw new Error(data.error);
       const md = (data.urls ?? []).map((u) => `\n![صورة](${u})\n`).join("");

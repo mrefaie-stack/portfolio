@@ -7,10 +7,10 @@ import Link from "next/link";
  */
 export function Logo({ className }: { className?: string }) {
   return (
-    <Link href="/" aria-label="ميلا نايتس — الصفحة الرئيسية" className={className}>
+    <Link href="/" aria-label="MilaKnight — الصفحة الرئيسية" className={className}>
       <Image
         src="/images/logo.png"
-        alt="Mila Knights"
+        alt="MilaKnight"
         width={110}
         height={123}
         priority

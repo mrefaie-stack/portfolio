@@ -2,13 +2,14 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { ImagePlus, Loader2, MoveLeft, MoveRight, Star, Trash2 } from "lucide-react";
+import { Clapperboard, ImagePlus, Loader2, MoveLeft, MoveRight, Play, Star, Trash2 } from "lucide-react";
+import { isVideo } from "@/lib/media";
 import { cn } from "@/lib/cn";
 
-async function upload(files: FileList | File[]): Promise<string[]> {
+async function upload(files: FileList | File[], kind: "image" | "media" = "image"): Promise<string[]> {
   const fd = new FormData();
   for (const f of Array.from(files)) fd.append("files", f);
-  const res = await fetch("/api/upload", { method: "POST", body: fd });
+  const res = await fetch(kind === "image" ? "/api/upload?kind=image" : "/api/upload", { method: "POST", body: fd });
   const data = (await res.json().catch(() => ({}))) as { urls?: string[]; error?: string };
   if (!res.ok) throw new Error(data.error ?? "فشل الرفع");
   return data.urls ?? [];
@@ -135,7 +136,7 @@ export function MultiImageUploader({
     setBusy(true);
     setErr(null);
     try {
-      const urls = await upload(files);
+      const urls = await upload(files, "media");
       onChange([...value, ...urls]);
     } catch (e) {
       setErr((e as Error).message);
@@ -167,7 +168,18 @@ export function MultiImageUploader({
       >
         {value.map((url, i) => (
           <div key={`${url}-${i}`} className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-surface-2">
-            <Image src={url} alt="" fill sizes="300px" className="object-cover" unoptimized />
+            {isVideo(url) ? (
+              <>
+                <video src={`${url}#t=0.1`} muted playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" />
+                <span className="absolute inset-0 grid place-items-center bg-black/25">
+                  <span className="grid size-9 place-items-center rounded-full bg-white/90 text-ink">
+                    <Play className="ms-0.5 size-4 fill-current" />
+                  </span>
+                </span>
+              </>
+            ) : (
+              <Image src={url} alt="" fill sizes="300px" className="object-cover" unoptimized />
+            )}
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
               <div className="flex gap-1">
                 <IconBtn title="لليمين" onClick={() => move(i, -1)} disabled={i === 0}>
@@ -178,7 +190,7 @@ export function MultiImageUploader({
                 </IconBtn>
               </div>
               <div className="flex gap-1">
-                {onSetCover && (
+                {onSetCover && !isVideo(url) && (
                   <IconBtn title="استخدام كغلاف" onClick={() => onSetCover(url)}>
                     <Star className="size-3.5" />
                   </IconBtn>
@@ -197,11 +209,25 @@ export function MultiImageUploader({
           disabled={busy}
           className="flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-surface-2 text-xs text-ink-3 transition-colors hover:border-brand/50 disabled:opacity-60"
         >
-          {busy ? <Loader2 className="size-6 animate-spin" /> : <ImagePlus className="size-6" strokeWidth={1.5} />}
-          {busy ? "جارٍ الرفع…" : "إضافة صور"}
+          {busy ? (
+            <Loader2 className="size-6 animate-spin" />
+          ) : (
+            <span className="flex items-center gap-1.5 text-ink-3">
+              <ImagePlus className="size-6" strokeWidth={1.5} />
+              <Clapperboard className="size-5" strokeWidth={1.5} />
+            </span>
+          )}
+          {busy ? "جارٍ الرفع…" : "إضافة صور أو فيديو"}
         </button>
       </div>
-      <input ref={inputRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => handle(e.target.files)} />
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v"
+        multiple
+        className="hidden"
+        onChange={(e) => handle(e.target.files)}
+      />
       {err && <p className="hint text-red-600">{err}</p>}
       {hint && !err && <p className="hint">{hint}</p>}
     </div>

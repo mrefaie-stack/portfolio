@@ -3,7 +3,7 @@ import { isAdmin } from "@/lib/auth/server";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { logoutAction } from "@/app/dashboard/actions";
 
-export const metadata = { title: { default: "لوحة التحكم", template: "%s | لوحة التحكم" } };
+export const metadata = { title: { default: "لوحة التحكم | MilaKnight", template: "%s | MilaKnight" } };
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   if (!(await isAdmin())) redirect("/dashboard/login");

@@ -269,8 +269,8 @@ export function PortfolioForm({
                 value={gallery}
                 onChange={setGallery}
                 onSetCover={setCover}
-                label="الصور الداخلية (المعرض)"
-                hint="يمكنك سحب عدة صور مرة واحدة. مرّر على الصورة للترتيب أو الحذف أو استخدامها كغلاف."
+                label="المعرض الداخلي (صور وفيديو)"
+                hint="صور (حتى 10MB) أو فيديو MP4/WebM/MOV (حتى 100MB). اسحب عدة ملفات مرة واحدة، ومرّر على العنصر للترتيب أو الحذف أو استخدام الصورة كغلاف."
               />
             </div>
           </Section>
