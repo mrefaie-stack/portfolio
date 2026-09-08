@@ -1,0 +1,10 @@
+node_modules
+.next
+out
+.env*.local
+.DS_Store
+tsconfig.tsbuildinfo
+*.zip
+# الصور المرفوعة من الداشبورد (احتفظ بها في نسخة احتياطية منفصلة)
+data/uploads/*
+!data/uploads/.gitkeep

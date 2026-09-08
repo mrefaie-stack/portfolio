@@ -1,0 +1,50 @@
+[
+  {
+    "slug": "medical",
+    "title": "المراكز الطبية",
+    "icon": "HeartPulse",
+    "order": 0
+  },
+  {
+    "slug": "education",
+    "title": "التعليم",
+    "icon": "GraduationCap",
+    "order": 1
+  },
+  {
+    "slug": "restaurants",
+    "title": "المطاعم",
+    "icon": "UtensilsCrossed",
+    "order": 2
+  },
+  {
+    "slug": "commerce",
+    "title": "التجارة",
+    "icon": "ShoppingBasket",
+    "order": 3
+  },
+  {
+    "slug": "cars",
+    "title": "السيارات",
+    "icon": "Car",
+    "order": 4
+  },
+  {
+    "slug": "beauty",
+    "title": "الجمال والعناية",
+    "icon": "Sparkles",
+    "order": 5
+  },
+  {
+    "slug": "cafes",
+    "title": "الكافيهات",
+    "icon": "Coffee",
+    "order": 6
+  },
+  {
+    "slug": "law",
+    "title": "القانون",
+    "icon": "Gavel",
+    "order": 7
+  }
+]
