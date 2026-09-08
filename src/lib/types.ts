@@ -8,6 +8,7 @@ export type PortfolioStatus = "draft" | "published";
 
 export type PortfolioLinks = {
   website?: string;
+  store?: string;
   instagram?: string;
   facebook?: string;
   tiktok?: string;

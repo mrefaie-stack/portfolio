@@ -23,6 +23,11 @@ const linkFields: {
     placeholder: "https://example.com",
   },
   {
+    key: "store",
+    label: "المتجر الإلكتروني",
+    placeholder: "https://store.example.com",
+  },
+  {
     key: "instagram",
     label: "إنستجرام",
     placeholder: "https://instagram.com/…",

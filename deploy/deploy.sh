@@ -9,9 +9,13 @@ APP_NAME="${APP_NAME:-portfolio}"
 PORT="${PORT:-3040}"
 
 cd "$APP_DIR"
-echo "==> pulling latest code"
+echo "==> pulling latest code (content/ on the server is kept as-is)"
+TMP_CONTENT="$(mktemp -d)"
+cp -a content/. "$TMP_CONTENT"/
 git fetch --quiet origin main
 git reset --hard origin/main --quiet
+cp -a "$TMP_CONTENT"/. content/
+rm -rf "$TMP_CONTENT"
 
 echo "==> installing dependencies"
 npm ci --no-audit --no-fund

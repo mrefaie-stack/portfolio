@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AtSign, CalendarDays, ExternalLink, FolderOpen, Globe, Link2, Music2, ThumbsUp, User } from "lucide-react";
+import { AtSign, CalendarDays, ExternalLink, FolderOpen, Globe, Link2, Music2, ShoppingBag, ThumbsUp, User } from "lucide-react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
@@ -38,6 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 const linkMeta: Record<string, { label: string; icon: typeof Globe }> = {
   website: { label: "الموقع الإلكتروني", icon: Globe },
+  store: { label: "المتجر الإلكتروني", icon: ShoppingBag },
   instagram: { label: "إنستجرام", icon: AtSign },
   facebook: { label: "فيسبوك", icon: ThumbsUp },
   tiktok: { label: "تيك توك", icon: Music2 },

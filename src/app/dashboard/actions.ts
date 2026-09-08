@@ -105,7 +105,7 @@ export async function savePortfolioAction(_prev: ActionState, formData: FormData
   }
 
   const links: Portfolio["links"] = {};
-  for (const k of ["website", "instagram", "facebook", "tiktok", "other"] as const) {
+  for (const k of ["website", "store", "instagram", "facebook", "tiktok", "other"] as const) {
     const v = str(formData, `links.${k}`);
     if (v) {
       if (!/^https?:\/\//i.test(v)) errors[`links.${k}`] = "الرابط يجب أن يبدأ بـ http:// أو https://";
