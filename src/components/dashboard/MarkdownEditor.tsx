@@ -1,7 +1,8 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Bold, Heading2, Heading3, ImagePlus, Link2, List, ListOrdered, Loader2, Quote } from "lucide-react";
+import { Bold, Clapperboard, Heading2, Heading3, ImagePlus, Link2, List, ListOrdered, Loader2, Quote } from "lucide-react";
+import { isVideo } from "@/lib/media";
 import { Markdown } from "@/components/ui/Markdown";
 import { cn } from "@/lib/cn";
 
@@ -50,15 +51,15 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
     try {
       const fd = new FormData();
       for (const f of Array.from(files)) fd.append("files", f);
-      const res = await fetch("/api/upload?kind=image", { method: "POST", body: fd });
+      const res = await fetch("/api/upload", { method: "POST", body: fd });
       const data = (await res.json()) as { urls?: string[]; error?: string };
       if (!res.ok) throw new Error(data.error);
-      const md = (data.urls ?? []).map((u) => `\n![صورة](${u})\n`).join("");
+      const md = "\n" + (data.urls ?? []).map((u) => `![${isVideo(u) ? "فيديو" : "صورة"}](${u})`).join("\n") + "\n";
       const el = ref.current;
       const s = el?.selectionStart ?? value.length;
       onChange(value.slice(0, s) + md + value.slice(s));
     } catch (e) {
-      alert((e as Error).message || "فشل رفع الصورة");
+      alert((e as Error).message || "فشل رفع الملف");
     } finally {
       setBusy(false);
       if (fileRef.current) fileRef.current.value = "";
@@ -117,15 +118,26 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
           })}
           <button
             type="button"
-            title="إدراج صورة"
-            aria-label="إدراج صورة"
+            title="إدراج صورة أو فيديو (عدة ملفات متتابعة تصبح سلايدر)"
+            aria-label="إدراج صورة أو فيديو"
             onClick={() => fileRef.current?.click()}
             disabled={tab === "preview" || busy}
             className="grid size-8 place-items-center rounded-md text-ink-2 hover:bg-surface hover:text-ink disabled:opacity-40"
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
           </button>
-          <input ref={fileRef} type="file" accept="image/*" multiple className="hidden" onChange={(e) => insertImage(e.target.files)} />
+          <span className="hidden items-center gap-1 px-1 text-[11px] text-ink-3 sm:inline-flex" title="يمكن إدراج فيديو داخل المقالة">
+            <Clapperboard className="size-3.5" />
+            صور وفيديو
+          </span>
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v"
+            multiple
+            className="hidden"
+            onChange={(e) => insertImage(e.target.files)}
+          />
         </div>
         <div className="flex rounded-lg bg-surface p-0.5 text-xs">
           {(["write", "preview"] as const).map((t) => (

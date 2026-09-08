@@ -219,12 +219,8 @@ body {
 .prose-mk blockquote p {
   color: var(--text);
 }
-.prose-mk img {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: 20px;
-  border: 1px solid var(--border);
+.prose-mk figure {
+  margin-inline: auto;
 }
 .prose-mk hr {
   border: 0;
