@@ -18,7 +18,7 @@ export function PortfolioCard({ portfolio: p, categoryTitle }: { portfolio: Port
   const services = p.services.slice(0, 3);
 
   return (
-    <article className="reveal group flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-[var(--shadow-menu)]">
+    <article className="reveal group flex h-full flex-col overflow-hidden rounded-card border border-border bg-surface shadow-[var(--shadow-card)] transition-[transform,box-shadow,border-color] duration-300 hover:-translate-y-1 hover:border-brand/30 hover:shadow-[var(--shadow-menu)] active:scale-[0.99]">
       {/* الغلاف + شارة المجال */}
       <Link href={href} className="relative block aspect-[530/300] w-full overflow-hidden bg-surface-2">
         {p.cover ? (

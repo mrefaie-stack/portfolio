@@ -1,6 +1,7 @@
 import Image from "next/image";
 import type { SiteSettings } from "@/lib/types";
 import { HeroVideo } from "./HeroVideo";
+import { CountUp } from "@/components/ui/CountUp";
 
 /**
  * قسم الـ Hero — 1640×810 في Figma، حواف 40px، صورة مع تدرّج داكن،
@@ -23,14 +24,14 @@ export function Hero({ hero }: { hero: SiteSettings["hero"] }) {
               fill
               priority
               sizes="(max-width: 1920px) 100vw, 1640px"
-              className="object-cover"
+              className="hero-zoom object-cover"
             />
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.10)_0%,rgba(0,0,0,0.20)_55%,rgba(0,0,0,0.75)_100%)]" />
         </div>
 
         <div className="absolute inset-0 flex flex-col items-center justify-center px-6 pb-24 pt-10 text-center text-white sm:pb-28 lg:pb-16 lg:pt-[190px]">
-          <h1 className="max-w-[777px] text-[34px] font-bold leading-[1.25] sm:text-5xl lg:text-[64px] lg:leading-[80px]">
+          <h1 className="hero-in hero-in-1 max-w-[777px] text-[34px] font-bold leading-[1.25] sm:text-5xl lg:text-[64px] lg:leading-[80px]">
             {hero.titleLine1}
             <span className="text-brand">.</span>
             {hero.titleLine2.trim() && (
@@ -40,7 +41,7 @@ export function Hero({ hero }: { hero: SiteSettings["hero"] }) {
               </>
             )}
           </h1>
-          <p className="mt-4 max-w-[777px] text-base leading-relaxed text-white/90 sm:text-lg lg:mt-5 lg:text-2xl lg:leading-9">
+          <p className="hero-in hero-in-2 mt-4 max-w-[777px] text-base leading-relaxed text-white/90 sm:text-lg lg:mt-5 lg:text-2xl lg:leading-9">
             {hero.subtitle}
           </p>
         </div>
@@ -52,15 +53,16 @@ export function Hero({ hero }: { hero: SiteSettings["hero"] }) {
               style={{ ["--bg-bottom-hero" as string]: "var(--bg-top)" }}
             />
             <div className="absolute inset-x-0 bottom-0 flex justify-center px-4">
-              <ul className="flex w-full max-w-[699px] items-end justify-center gap-2 sm:gap-3">
+              <ul className="hero-in hero-in-3 flex w-full max-w-[699px] items-end justify-center gap-2 sm:gap-3">
                 {stats.map((s, i) => (
                   <li
                     key={`${s.label}-${i}`}
                     className="hero-stat flex flex-1 flex-col items-center gap-1 px-2 pb-4 pt-4 text-center sm:pb-5 sm:pt-5"
                   >
-                    <span className="tabular text-xl font-bold leading-none text-brand sm:text-[28px] lg:text-[32px]">
-                      {s.value}
-                    </span>
+                    <CountUp
+                      value={s.value}
+                      className="tabular text-xl font-bold leading-none text-brand sm:text-[28px] lg:text-[32px]"
+                    />
                     <span className="text-[11px] text-white sm:text-sm sm:text-ink-2">{s.label}</span>
                   </li>
                 ))}

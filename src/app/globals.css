@@ -398,16 +398,6 @@ select.field {
   }
 }
 
-/* الموبايل: تأثير أخف على الأداء */
-@media (max-width: 640px) {
-  .bg-fx-blob {
-    filter: blur(56px);
-  }
-  .bg-fx-blob-3 {
-    display: none;
-  }
-}
-
 /* لا خلفية متحركة داخل لوحة التحكم */
 body:has(.dashboard-root) .bg-fx {
   display: none;
@@ -453,5 +443,282 @@ body:has(.dashboard-root) .bg-fx {
     animation: none !important;
     opacity: 1 !important;
     translate: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------
+   حياة الصفحة: دخول متدرّج للـ Hero + زوم بطيء جداً على صورته
+   ------------------------------------------------------------------ */
+@keyframes hero-in {
+  from {
+    opacity: 0;
+    translate: 0 20px;
+  }
+  to {
+    opacity: 1;
+    translate: none;
+  }
+}
+@keyframes hero-zoom {
+  from {
+    scale: 1;
+  }
+  to {
+    scale: 1.06;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-in {
+    animation: hero-in 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .hero-in-1 {
+    animation-delay: 0.06s;
+  }
+  .hero-in-2 {
+    animation-delay: 0.2s;
+  }
+  .hero-in-3 {
+    animation-delay: 0.36s;
+  }
+  .hero-zoom {
+    animation: hero-zoom 28s ease-in-out infinite alternate;
+  }
+}
+
+/* الموبايل: هالات أكبر وأوضح قليلاً حتى تُحَس الحركة على الشاشة الصغيرة */
+@media (max-width: 640px) {
+  .bg-fx-blob {
+    filter: blur(48px);
+  }
+  .bg-fx-blob-1 {
+    width: 86vw;
+    top: -8vh;
+    right: -26vw;
+    animation-duration: 22s;
+  }
+  .bg-fx-blob-2 {
+    width: 80vw;
+    bottom: -6vh;
+    left: -30vw;
+    animation-duration: 26s;
+  }
+  .bg-fx-blob-3 {
+    display: block;
+    width: 64vw;
+    top: 42%;
+    left: 26%;
+    animation-duration: 24s;
+  }
+  .bg-fx-dots {
+    background-size: 26px 26px;
+  }
+}
+
+/* ------------------------------------------------------------------
+   أشكال الفيكتور المتحركة في الخلفية
+   ------------------------------------------------------------------ */
+.bg-fx-vectors {
+  position: absolute;
+  inset: 0;
+}
+
+.vec {
+  position: absolute;
+  display: block;
+  overflow: visible;
+  will-change: transform;
+}
+
+/* المواضع والأحجام والألوان */
+.vec-1 {
+  width: clamp(90px, 11vw, 170px);
+  top: 12%;
+  left: 6%;
+  color: var(--brand);
+  opacity: 0.22;
+}
+.vec-2 {
+  width: clamp(70px, 8vw, 120px);
+  top: 62%;
+  left: 12%;
+  color: var(--text);
+  opacity: 0.15;
+}
+.vec-3 {
+  width: clamp(80px, 9vw, 140px);
+  top: 24%;
+  right: 8%;
+  color: var(--text);
+  opacity: 0.13;
+}
+.vec-4 {
+  width: clamp(60px, 7vw, 100px);
+  top: 74%;
+  right: 14%;
+  color: var(--brand);
+  opacity: 0.2;
+}
+.vec-5 {
+  width: clamp(26px, 3vw, 44px);
+  top: 44%;
+  left: 46%;
+  color: var(--brand);
+  opacity: 0.26;
+}
+.vec-6 {
+  width: clamp(54px, 6vw, 90px);
+  top: 16%;
+  left: 52%;
+  color: var(--text);
+  opacity: 0.13;
+}
+.vec-7 {
+  width: clamp(90px, 12vw, 190px);
+  bottom: 8%;
+  left: 40%;
+  color: var(--brand);
+  opacity: 0.18;
+}
+.vec-8 {
+  width: clamp(80px, 10vw, 150px);
+  top: 50%;
+  right: 4%;
+  color: var(--brand);
+  opacity: 0.17;
+}
+.vec-9 {
+  width: clamp(60px, 7vw, 110px);
+  top: 6%;
+  right: 34%;
+  color: var(--text);
+  opacity: 0.15;
+}
+
+.dark .vec-2,
+.dark .vec-3,
+.dark .vec-6,
+.dark .vec-9 {
+  opacity: 0.16;
+}
+
+/* حركات الطفو — كل شكل بمسار ومدة مختلفة حتى لا تتزامن */
+@keyframes vec-float-a {
+  0% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  50% {
+    translate: 1.6vw -3vh;
+    rotate: 9deg;
+  }
+  100% {
+    translate: -1.2vw 2.4vh;
+    rotate: -7deg;
+  }
+}
+@keyframes vec-float-b {
+  0% {
+    translate: 0 0;
+    rotate: 0deg;
+  }
+  50% {
+    translate: -2vw 2.6vh;
+    rotate: -10deg;
+  }
+  100% {
+    translate: 1.4vw -2vh;
+    rotate: 6deg;
+  }
+}
+@keyframes vec-float-c {
+  0% {
+    translate: 0 0;
+    scale: 1;
+  }
+  50% {
+    translate: 1vw 3vh;
+    scale: 1.12;
+  }
+  100% {
+    translate: -1.6vw -1.6vh;
+    scale: 0.94;
+  }
+}
+@keyframes vec-spin {
+  from {
+    rotate: 0deg;
+  }
+  to {
+    rotate: 360deg;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .vec-1 {
+    animation: vec-float-a 26s ease-in-out infinite alternate;
+  }
+  .vec-2 {
+    animation: vec-spin 48s linear infinite;
+  }
+  .vec-3 {
+    animation: vec-float-b 32s ease-in-out infinite alternate;
+  }
+  .vec-4 {
+    animation: vec-float-a 29s ease-in-out infinite alternate-reverse;
+  }
+  .vec-5 {
+    animation: vec-float-c 22s ease-in-out infinite alternate;
+  }
+  .vec-6 {
+    animation: vec-float-b 27s ease-in-out infinite alternate;
+  }
+  .vec-7 {
+    animation: vec-float-a 36s ease-in-out infinite alternate;
+  }
+  .vec-8 {
+    animation: vec-spin 62s linear infinite reverse;
+  }
+  .vec-9 {
+    animation: vec-float-c 24s ease-in-out infinite alternate-reverse;
+  }
+}
+
+/* الموبايل: أشكال أقل وأكبر قليلاً حتى تُحَس من غير زحمة */
+@media (max-width: 640px) {
+  .vec-3,
+  .vec-6,
+  .vec-9 {
+    display: none;
+  }
+  .vec-1 {
+    width: 34vw;
+    top: 9%;
+    left: -6%;
+  }
+  .vec-2 {
+    width: 26vw;
+    top: 66%;
+    left: -4%;
+  }
+  .vec-4 {
+    width: 22vw;
+    top: 78%;
+    right: 6%;
+  }
+  .vec-5 {
+    width: 9vw;
+    top: 40%;
+    left: 52%;
+  }
+  .vec-7 {
+    width: 40vw;
+    bottom: 6%;
+    left: 34%;
+  }
+  .vec-8 {
+    width: 30vw;
+    top: 46%;
+    right: -8%;
   }
 }
