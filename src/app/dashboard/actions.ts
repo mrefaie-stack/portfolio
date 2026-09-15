@@ -242,6 +242,7 @@ export async function saveSettingsAction(_prev: ActionState, formData: FormData)
       titleLine2: str(formData, "hero.titleLine2"),
       subtitle: str(formData, "hero.subtitle"),
       image: str(formData, "hero.image") || current.hero.image,
+      video: str(formData, "hero.video"),
       stats,
     },
     featured: {

@@ -12,6 +12,7 @@ export const defaultSettings: SiteSettings = {
     subtitle:
       "وكالة تسويق رقمية تولّد الظهور، التفاعل، والمتابعين، وتوثّق أثر كل ملف أعمال كقضية ناجحة موثّقة.",
     image: "/images/hero.jpg",
+    video: "",
     stats: [
       { value: "13,081", label: "المتابعين" },
       { value: "190,619", label: "التفاعلات" },

@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { fallbackFont } from "@/fonts";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme/ThemeProvider";
+import { BackgroundFX } from "@/components/ui/BackgroundFX";
 
 export const metadata: Metadata = {
   title: { default: "MilaKnight", template: "%s | MilaKnight" },
@@ -15,7 +16,10 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
   return (
     <html lang="ar" dir="rtl" className={fallbackFont.variable} suppressHydrationWarning>
       <body className="min-h-screen antialiased">
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          <BackgroundFX />
+          {children}
+        </ThemeProvider>
       </body>
     </html>
   );

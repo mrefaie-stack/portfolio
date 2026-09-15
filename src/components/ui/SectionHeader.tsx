@@ -17,7 +17,7 @@ export function SectionHeader({
   hrefLabel?: string;
 }) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
+    <div className="reveal flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
       <div className="text-right">
         <div className="flex items-center gap-3">
           <h2 id={id} className="text-[28px] font-bold leading-tight text-ink lg:text-[40px]">

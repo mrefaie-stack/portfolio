@@ -64,7 +64,10 @@ export type SiteSettings = {
     titleLine1: string;
     titleLine2: string;
     subtitle: string;
+    /** صورة الخلفية — تُستخدم أيضاً كـ poster للفيديو */
     image: string;
+    /** فيديو خلفية اختياري (mp4/webm) — يعمل صامتاً ومتكرراً */
+    video?: string;
     stats: Stat[];
   };
   featured: { title: string; subtitle: string };

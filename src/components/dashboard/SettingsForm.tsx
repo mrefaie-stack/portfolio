@@ -10,6 +10,7 @@ import { SingleImageUploader } from "./ImageUploader";
 export function SettingsForm({ settings }: { settings: SiteSettings }) {
   const [state, action] = useActionState<ActionState, FormData>(saveSettingsAction, {});
   const [heroImage, setHeroImage] = useState(settings.hero.image);
+  const [heroVideo, setHeroVideo] = useState(settings.hero.video ?? "");
   const [dismissed, setDismissed] = useState<ActionState | null>(null);
   const flash = state.ok && state.message && dismissed !== state ? state.message : null;
 
@@ -45,7 +46,18 @@ export function SettingsForm({ settings }: { settings: SiteSettings }) {
                 onChange={setHeroImage}
                 label="صورة الـ Hero"
                 aspect="aspect-[1640/620]"
-                hint="مقاس عريض (1640×810 أو أكبر)."
+                hint="مقاس عريض (1640×810 أو أكبر). تُستخدم كخلفية، وكصورة أولى قبل تحميل الفيديو."
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <SingleImageUploader
+                name="hero.video"
+                value={heroVideo}
+                onChange={setHeroVideo}
+                kind="media"
+                label="فيديو الـ Hero (اختياري)"
+                aspect="aspect-[1640/620]"
+                hint="MP4 أو WebM حتى 100MB. يعمل صامتاً ومتكرراً فوق الصورة — احذفه للرجوع إلى الصورة الثابتة. يُفضّل فيديو قصير ومضغوط."
               />
             </div>
           </div>

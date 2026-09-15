@@ -1,5 +1,6 @@
 import Image from "next/image";
 import type { SiteSettings } from "@/lib/types";
+import { HeroVideo } from "./HeroVideo";
 
 /**
  * قسم الـ Hero — 1640×810 في Figma، حواف 40px، صورة مع تدرّج داكن،
@@ -8,18 +9,23 @@ import type { SiteSettings } from "@/lib/types";
  */
 export function Hero({ hero }: { hero: SiteSettings["hero"] }) {
   const stats = hero.stats.filter((s) => s.value && s.label);
+  const video = hero.video?.trim();
   return (
     <section className="mx-auto w-full max-w-[1920px] px-4 pt-6 sm:px-8 lg:pt-[60px] xl:px-[140px]">
       <div className="relative overflow-hidden rounded-[24px] lg:rounded-hero">
         <div className="relative aspect-[4/5] sm:aspect-[16/10] lg:aspect-[1640/810]">
-          <Image
-            src={hero.image}
-            alt=""
-            fill
-            priority
-            sizes="(max-width: 1920px) 100vw, 1640px"
-            className="object-cover"
-          />
+          {video ? (
+            <HeroVideo src={video} poster={hero.image} />
+          ) : (
+            <Image
+              src={hero.image}
+              alt=""
+              fill
+              priority
+              sizes="(max-width: 1920px) 100vw, 1640px"
+              className="object-cover"
+            />
+          )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.10)_0%,rgba(0,0,0,0.20)_55%,rgba(0,0,0,0.75)_100%)]" />
         </div>
 
@@ -27,8 +33,12 @@ export function Hero({ hero }: { hero: SiteSettings["hero"] }) {
           <h1 className="max-w-[777px] text-[34px] font-bold leading-[1.25] sm:text-5xl lg:text-[64px] lg:leading-[80px]">
             {hero.titleLine1}
             <span className="text-brand">.</span>
-            <br />
-            {hero.titleLine2}
+            {hero.titleLine2.trim() && (
+              <>
+                <br />
+                {hero.titleLine2}
+              </>
+            )}
           </h1>
           <p className="mt-4 max-w-[777px] text-base leading-relaxed text-white/90 sm:text-lg lg:mt-5 lg:text-2xl lg:leading-9">
             {hero.subtitle}

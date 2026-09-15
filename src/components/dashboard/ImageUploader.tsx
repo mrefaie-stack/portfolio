@@ -15,7 +15,10 @@ async function upload(files: FileList | File[], kind: "image" | "media" = "image
   return data.urls ?? [];
 }
 
-/** رفع صورة واحدة (الغلاف / صورة الـ Hero) — يخزّن الرابط في input مخفي بالاسم المعطى */
+/**
+ * رفع ملف واحد (الغلاف / صورة أو فيديو الـ Hero) — يخزّن الرابط في input مخفي بالاسم المعطى.
+ * `kind="media"` يسمح بالفيديو إضافة إلى الصور.
+ */
 export function SingleImageUploader({
   name,
   value,
@@ -24,6 +27,7 @@ export function SingleImageUploader({
   label,
   hint,
   error,
+  kind = "image",
 }: {
   name: string;
   value: string;
@@ -32,6 +36,7 @@ export function SingleImageUploader({
   label: string;
   hint?: string;
   error?: string;
+  kind?: "image" | "media";
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
@@ -42,7 +47,7 @@ export function SingleImageUploader({
     setBusy(true);
     setErr(null);
     try {
-      const [url] = await upload([files[0]]);
+      const [url] = await upload([files[0]], kind);
       if (url) onChange(url);
     } catch (e) {
       setErr((e as Error).message);
@@ -69,15 +74,19 @@ export function SingleImageUploader({
         }}
       >
         {value ? (
-          <Image src={value} alt="" fill sizes="600px" className="object-cover" unoptimized />
+          isVideo(value) ? (
+            <video src={value} muted loop playsInline autoPlay className="absolute inset-0 h-full w-full object-cover" />
+          ) : (
+            <Image src={value} alt="" fill sizes="600px" className="object-cover" unoptimized />
+          )
         ) : (
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
             className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-sm text-ink-3"
           >
-            <ImagePlus className="size-8" strokeWidth={1.5} />
-            اسحب صورة هنا أو اضغط للاختيار
+            {kind === "media" ? <Clapperboard className="size-8" strokeWidth={1.5} /> : <ImagePlus className="size-8" strokeWidth={1.5} />}
+            {kind === "media" ? "اسحب صورة أو فيديو هنا أو اضغط للاختيار" : "اسحب صورة هنا أو اضغط للاختيار"}
           </button>
         )}
         {busy && (
@@ -104,7 +113,13 @@ export function SingleImageUploader({
           </div>
         )}
       </div>
-      <input ref={inputRef} type="file" accept="image/*" className="hidden" onChange={(e) => handle(e.target.files)} />
+      <input
+        ref={inputRef}
+        type="file"
+        accept={kind === "media" ? "image/*,video/mp4,video/webm,video/quicktime,.mp4,.webm,.mov,.m4v" : "image/*"}
+        className="hidden"
+        onChange={(e) => handle(e.target.files)}
+      />
       {(err || error) && <p className="hint text-red-600">{err ?? error}</p>}
       {hint && !err && !error && <p className="hint">{hint}</p>}
     </div>

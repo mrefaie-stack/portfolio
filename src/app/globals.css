@@ -308,3 +308,150 @@ select.field {
   font-size: 12px;
   color: var(--text-3);
 }
+
+/* ------------------------------------------------------------------
+   الخلفية المتحركة — هالات لونية خفيفة + شبكة نقاط، خلف كل المحتوى
+   ------------------------------------------------------------------ */
+.bg-fx {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  contain: layout paint;
+}
+
+.bg-fx-blob {
+  position: absolute;
+  display: block;
+  aspect-ratio: 1;
+  border-radius: 9999px;
+  filter: blur(80px);
+  will-change: transform;
+}
+
+.bg-fx-blob-1 {
+  width: min(52vw, 640px);
+  top: -14vh;
+  right: -8vw;
+  background: radial-gradient(circle at 35% 35%, rgba(255, 50, 0, 0.2), rgba(255, 50, 0, 0) 68%);
+  animation: fx-drift-a 30s ease-in-out infinite alternate;
+}
+.bg-fx-blob-2 {
+  width: min(46vw, 560px);
+  bottom: -12vh;
+  left: -10vw;
+  background: radial-gradient(circle at 60% 40%, rgba(255, 140, 0, 0.16), rgba(255, 140, 0, 0) 70%);
+  animation: fx-drift-b 38s ease-in-out infinite alternate;
+}
+.bg-fx-blob-3 {
+  width: min(38vw, 460px);
+  top: 38%;
+  left: 44%;
+  background: radial-gradient(circle at 50% 50%, rgba(255, 90, 120, 0.12), rgba(255, 90, 120, 0) 70%);
+  animation: fx-drift-c 34s ease-in-out infinite alternate;
+}
+
+.dark .bg-fx-blob-1 {
+  background: radial-gradient(circle at 35% 35%, rgba(255, 50, 0, 0.3), rgba(255, 50, 0, 0) 68%);
+}
+.dark .bg-fx-blob-2 {
+  background: radial-gradient(circle at 60% 40%, rgba(255, 140, 0, 0.18), rgba(255, 140, 0, 0) 70%);
+}
+.dark .bg-fx-blob-3 {
+  background: radial-gradient(circle at 50% 50%, rgba(180, 80, 255, 0.14), rgba(180, 80, 255, 0) 70%);
+}
+
+/* شبكة نقاط تتلاشى تدريجياً نحو الأسفل */
+.bg-fx-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, color-mix(in srgb, var(--text) 8%, transparent) 1px, transparent 1.5px);
+  background-size: 32px 32px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 55% at 50% 0%, #000 0%, transparent 70%);
+  mask-image: radial-gradient(ellipse 90% 55% at 50% 0%, #000 0%, transparent 70%);
+  opacity: 0.55;
+}
+
+@keyframes fx-drift-a {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-6vw, 6vh, 0) scale(1.12);
+  }
+}
+@keyframes fx-drift-b {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(7vw, -5vh, 0) scale(1.08);
+  }
+}
+@keyframes fx-drift-c {
+  from {
+    transform: translate3d(-3vw, 0, 0) scale(0.95);
+  }
+  to {
+    transform: translate3d(4vw, -7vh, 0) scale(1.15);
+  }
+}
+
+/* الموبايل: تأثير أخف على الأداء */
+@media (max-width: 640px) {
+  .bg-fx-blob {
+    filter: blur(56px);
+  }
+  .bg-fx-blob-3 {
+    display: none;
+  }
+}
+
+/* لا خلفية متحركة داخل لوحة التحكم */
+body:has(.dashboard-root) .bg-fx {
+  display: none;
+}
+
+/* ------------------------------------------------------------------
+   ظهور تدريجي للعناصر مع التمرير (يعمل في المتصفحات الداعمة فقط)
+   نحرّك خاصية translate المستقلة حتى لا تتعارض مع تأثير hover
+   ------------------------------------------------------------------ */
+@keyframes fx-reveal {
+  from {
+    opacity: 0;
+    translate: 0 22px;
+  }
+  to {
+    opacity: 1;
+    translate: none;
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .reveal {
+      animation: fx-reveal both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg-fx-blob {
+    animation: none;
+  }
+}
+
+/* الطباعة وحفظ PDF: بلا حركة، وكل المحتوى ظاهر */
+@media print {
+  .bg-fx {
+    display: none;
+  }
+  .reveal {
+    animation: none !important;
+    opacity: 1 !important;
+    translate: none !important;
+  }
+}
