@@ -2,9 +2,10 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Check, ExternalLink, Plus, X } from "lucide-react";
+import { Check, ExternalLink, Loader2, Pencil, Plus, X } from "lucide-react";
 import type { Category, Portfolio, Stat } from "@/lib/types";
-import { savePortfolioAction, type ActionState } from "@/app/dashboard/actions";
+import { quickAddCategoryAction, savePortfolioAction, type ActionState } from "@/app/dashboard/actions";
+import { getIcon, iconNames } from "@/lib/icons";
 import { slugify } from "@/lib/format";
 import { cn } from "@/lib/cn";
 import { SubmitButton } from "./SubmitButton";
@@ -73,6 +74,29 @@ export function PortfolioForm({
   // الحقول التالية controlled أيضاً: React 19 يعيد ضبط الحقول غير الـ controlled بعد كل إرسال،
   // فلا تضيع قيمها عند رجوع أخطاء التحقق من الخادم.
   const [category, setCategory] = useState(portfolio.category);
+  // قائمة المجالات محلياً حتى يظهر المجال المُضاف فوراً ويُختار تلقائياً
+  const [cats, setCats] = useState<Category[]>(categories);
+  const [addingCat, setAddingCat] = useState(false);
+  const [newCatTitle, setNewCatTitle] = useState("");
+  const [newCatIcon, setNewCatIcon] = useState<string>("FolderOpen");
+  const [catBusy, setCatBusy] = useState(false);
+  const [catError, setCatError] = useState<string | null>(null);
+
+  async function addCategory() {
+    if (catBusy) return;
+    setCatBusy(true);
+    setCatError(null);
+    const r = await quickAddCategoryAction(newCatTitle, newCatIcon);
+    setCatBusy(false);
+    if (!r.ok) {
+      setCatError(r.error);
+      return;
+    }
+    setCats((list) => [...list, r.category]);
+    setCategory(r.category.slug);
+    setNewCatTitle("");
+    setAddingCat(false);
+  }
   const [date, setDate] = useState(portfolio.date);
   const [featured, setFeatured] = useState(portfolio.featured);
   const [links, setLinks] = useState<Portfolio["links"]>(portfolio.links);
@@ -149,23 +173,95 @@ export function PortfolioForm({
               </Field>
 
               <Field label="المجال" error={errors.category}>
-                <select
-                  ref={categoryRef}
-                  name="category"
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  className="field"
-                  required
-                >
-                  <option value="" disabled>
-                    اختر المجال…
-                  </option>
-                  {categories.map((c) => (
-                    <option key={c.slug} value={c.slug}>
-                      {c.title}
+                <div className="flex gap-2">
+                  <select
+                    ref={categoryRef}
+                    name="category"
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="field min-w-0 flex-1"
+                    required
+                  >
+                    <option value="" disabled>
+                      اختر المجال…
                     </option>
-                  ))}
-                </select>
+                    {cats.map((c) => (
+                      <option key={c.slug} value={c.slug}>
+                        {c.title}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setAddingCat((v) => !v)}
+                    title="إضافة مجال جديد"
+                    aria-label="إضافة مجال جديد"
+                    className={cn(
+                      "grid size-11 shrink-0 place-items-center rounded-lg border text-ink transition-colors",
+                      addingCat ? "border-brand bg-brand-soft text-brand" : "border-border bg-surface hover:bg-surface-2",
+                    )}
+                  >
+                    {addingCat ? <X className="size-4" /> : <Plus className="size-4" />}
+                  </button>
+                </div>
+
+                {addingCat && (
+                  <div className="mt-2 rounded-xl border border-border bg-surface-2/60 p-3">
+                    <div className="flex gap-2">
+                      <input
+                        value={newCatTitle}
+                        onChange={(e) => setNewCatTitle(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void addCategory();
+                          }
+                        }}
+                        className="field h-10 min-w-0 flex-1"
+                        placeholder="اسم المجال الجديد… مثال: العقارات"
+                        autoFocus
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void addCategory()}
+                        disabled={catBusy || !newCatTitle.trim()}
+                        className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3.5 text-sm font-medium text-white hover:bg-[#e62d00] disabled:opacity-50"
+                      >
+                        {catBusy ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+                        إضافة
+                      </button>
+                    </div>
+                    <div className="mt-2 flex flex-wrap gap-1">
+                      {iconNames.map((n) => {
+                        const I = getIcon(n);
+                        return (
+                          <button
+                            key={n}
+                            type="button"
+                            title={n}
+                            onClick={() => setNewCatIcon(n)}
+                            className={cn(
+                              "grid size-8 place-items-center rounded-md border transition-colors",
+                              newCatIcon === n ? "border-brand bg-brand-soft text-brand" : "border-border bg-surface text-ink-2 hover:bg-surface-2",
+                            )}
+                          >
+                            <I className="size-4" strokeWidth={1.75} />
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {catError && <p className="hint text-red-600">{catError}</p>}
+                  </div>
+                )}
+
+                <Link
+                  href="/dashboard/categories"
+                  target="_blank"
+                  className="mt-1.5 inline-flex items-center gap-1 text-xs text-ink-3 hover:text-brand"
+                >
+                  <Pencil className="size-3" />
+                  تعديل المجالات وترتيبها
+                </Link>
               </Field>
 
               <Field label="تاريخ العمل" error={errors.date}>

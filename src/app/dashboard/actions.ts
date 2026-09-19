@@ -196,6 +196,27 @@ export async function saveCategoryAction(_prev: ActionState, formData: FormData)
   return { ok: true, message: existing ? "تم تحديث المجال" : "تمت إضافة المجال" };
 }
 
+export type QuickCategoryResult = { ok: true; category: Category } | { ok: false; error: string };
+
+/** إضافة مجال جديد من داخل نموذج ملف الأعمال مباشرة (بلا مغادرة الصفحة) */
+export async function quickAddCategoryAction(title: string, icon: string): Promise<QuickCategoryResult> {
+  await requireAdmin();
+  const name = title.trim();
+  const slug = slugify(name);
+  if (!name) return { ok: false, error: "اكتب اسم المجال" };
+  if (!slug) return { ok: false, error: "اسم المجال غير صالح" };
+  const iconName = (iconNames as string[]).includes(icon) ? icon : "FolderOpen";
+
+  const list = await getCategories();
+  const dup = list.find((c) => c.slug === slug || c.title.trim() === name);
+  if (dup) return { ok: false, error: `المجال "${dup.title}" موجود بالفعل` };
+
+  const category: Category = { slug, title: name, icon: iconName, order: list.length };
+  await upsertCategory(category);
+  revalidateSite();
+  return { ok: true, category };
+}
+
 export async function deleteCategoryAction(formData: FormData) {
   await requireAdmin();
   const slug = str(formData, "slug");
