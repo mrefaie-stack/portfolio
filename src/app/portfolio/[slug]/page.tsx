@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AtSign, CalendarDays, ExternalLink, FolderOpen, Globe, Link2, Music2, ShoppingBag, ThumbsUp, User } from "lucide-react";
@@ -12,6 +11,7 @@ import { Markdown } from "@/components/ui/Markdown";
 import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { Gallery } from "@/components/portfolio/Gallery";
+import { SmartMedia } from "@/components/ui/SmartMedia";
 import { PortfolioGrid } from "@/components/portfolio/PortfolioGrid";
 import { getPortfolioBySlug, getPublishedPortfolios } from "@/lib/repo/portfolios";
 import { getCategoriesWithCounts } from "@/lib/repo/categories";
@@ -91,7 +91,7 @@ export default async function PortfolioPage({ params }: Props) {
           <div className="relative mt-6 overflow-hidden rounded-[24px] bg-surface-2 lg:rounded-hero">
             <div className="relative aspect-[4/3] sm:aspect-[16/9] lg:aspect-[1640/620]">
               {p.cover && (
-                <Image src={p.cover} alt={p.clientName} fill priority sizes="(max-width: 1920px) 100vw, 1640px" className="object-cover" />
+                <SmartMedia src={p.cover} alt={p.clientName} priority sizes="(max-width: 1920px) 100vw, 1640px" />
               )}
               <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.05)_0%,rgba(0,0,0,0.15)_45%,rgba(0,0,0,0.80)_100%)]" />
             </div>

@@ -2,8 +2,8 @@
 
 import { useRef, useState } from "react";
 import Image from "next/image";
-import { Clapperboard, ImagePlus, Loader2, MoveLeft, MoveRight, Play, Star, Trash2 } from "lucide-react";
-import { isVideo } from "@/lib/media";
+import { Check, Clapperboard, ImagePlus, Link2, Loader2, MoveLeft, MoveRight, Play, Star, Trash2, X } from "lucide-react";
+import { drivePoster, isEmbed, isExternal, isVideo, LINK_ERROR, normalizeMediaUrl, type MediaKind } from "@/lib/media";
 import { cn } from "@/lib/cn";
 
 async function upload(files: FileList | File[], kind: "image" | "media" = "image"): Promise<string[]> {
@@ -13,6 +13,128 @@ async function upload(files: FileList | File[], kind: "image" | "media" = "image
   const data = (await res.json().catch(() => ({}))) as { urls?: string[]; error?: string };
   if (!res.ok) throw new Error(data.error ?? "فشل الرفع");
   return data.urls ?? [];
+}
+
+/**
+ * لوحة لصق رابط خارجي (Google Drive أو رابط مباشر) — بديل الرفع لتوفير مساحة السيرفر.
+ */
+function LinkPanel({
+  allowVideo,
+  onAdd,
+  onClose,
+}: {
+  allowVideo: boolean;
+  onAdd: (url: string) => void;
+  onClose: () => void;
+}) {
+  const [link, setLink] = useState("");
+  const [kind, setKind] = useState<MediaKind>("image");
+  const [error, setError] = useState<string | null>(null);
+
+  function submit() {
+    const url = normalizeMediaUrl(link, allowVideo ? kind : "image");
+    if (!url) {
+      setError(LINK_ERROR);
+      return;
+    }
+    onAdd(url);
+    setLink("");
+    setError(null);
+    onClose();
+  }
+
+  return (
+    <div className="mt-3 rounded-xl border border-border bg-surface-2/60 p-3">
+      {allowVideo && (
+        <div className="mb-2 flex w-fit gap-1 rounded-lg bg-surface p-1 text-xs">
+          {(["image", "video"] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              onClick={() => setKind(k)}
+              className={cn(
+                "rounded-md px-3 py-1.5 transition-colors",
+                kind === k ? "bg-ink text-white dark:bg-white dark:text-black" : "text-ink-2",
+              )}
+            >
+              {k === "image" ? "صورة" : "فيديو"}
+            </button>
+          ))}
+        </div>
+      )}
+      <div className="flex gap-2">
+        <input
+          value={link}
+          onChange={(e) => setLink(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              submit();
+            }
+          }}
+          dir="ltr"
+          autoFocus
+          placeholder="https://drive.google.com/file/d/…/view"
+          className="field h-10 min-w-0 flex-1 text-left"
+        />
+        <button
+          type="button"
+          onClick={submit}
+          disabled={!link.trim()}
+          className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3.5 text-sm font-medium text-white hover:bg-[#e62d00] disabled:opacity-50"
+        >
+          <Check className="size-4" />
+          إضافة
+        </button>
+      </div>
+      {error ? (
+        <p className="hint text-red-600">{error}</p>
+      ) : (
+        <p className="hint">
+          من Drive: زر «مشاركة» ← «أي شخص لديه الرابط» ← انسخ الرابط والصقه هنا. لا يُرفع الملف على السيرفر.
+        </p>
+      )}
+    </div>
+  );
+}
+
+/** معاينة عنصر داخل الداشبورد: إطار Drive، فيديو، أو صورة */
+function Preview({ url, alt = "" }: { url: string; alt?: string }) {
+  if (isEmbed(url)) {
+    const poster = drivePoster(url);
+    return (
+      <>
+        {poster ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={poster} alt={alt} className="absolute inset-0 h-full w-full object-cover" />
+        ) : (
+          <span className="absolute inset-0 bg-black" />
+        )}
+        <span className="absolute inset-0 grid place-items-center bg-black/30">
+          <span className="grid size-9 place-items-center rounded-full bg-white/90 text-ink">
+            <Play className="ms-0.5 size-4 fill-current" />
+          </span>
+        </span>
+      </>
+    );
+  }
+  if (isVideo(url)) {
+    return (
+      <>
+        <video src={`${url}#t=0.1`} muted playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" />
+        <span className="absolute inset-0 grid place-items-center bg-black/25">
+          <span className="grid size-9 place-items-center rounded-full bg-white/90 text-ink">
+            <Play className="ms-0.5 size-4 fill-current" />
+          </span>
+        </span>
+      </>
+    );
+  }
+  if (isExternal(url)) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={url} alt={alt} className="absolute inset-0 h-full w-full object-cover" />;
+  }
+  return <Image src={url} alt={alt} fill sizes="600px" className="object-cover" unoptimized />;
 }
 
 /**
@@ -40,6 +162,7 @@ export function SingleImageUploader({
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [linking, setLinking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handle(files: FileList | null) {
@@ -74,11 +197,7 @@ export function SingleImageUploader({
         }}
       >
         {value ? (
-          isVideo(value) ? (
-            <video src={value} muted loop playsInline autoPlay className="absolute inset-0 h-full w-full object-cover" />
-          ) : (
-            <Image src={value} alt="" fill sizes="600px" className="object-cover" unoptimized />
-          )
+          <Preview url={value} />
         ) : (
           <button
             type="button"
@@ -87,6 +206,16 @@ export function SingleImageUploader({
           >
             {kind === "media" ? <Clapperboard className="size-8" strokeWidth={1.5} /> : <ImagePlus className="size-8" strokeWidth={1.5} />}
             {kind === "media" ? "اسحب صورة أو فيديو هنا أو اضغط للاختيار" : "اسحب صورة هنا أو اضغط للاختيار"}
+          </button>
+        )}
+        {!value && !busy && (
+          <button
+            type="button"
+            onClick={() => setLinking((v) => !v)}
+            className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-ink-2 hover:bg-surface-2"
+          >
+            <Link2 className="size-3.5" />
+            أو الصق رابط Drive
           </button>
         )}
         {busy && (
@@ -120,6 +249,9 @@ export function SingleImageUploader({
         className="hidden"
         onChange={(e) => handle(e.target.files)}
       />
+      {linking && !value && (
+        <LinkPanel allowVideo={kind === "media"} onAdd={(url) => onChange(url)} onClose={() => setLinking(false)} />
+      )}
       {(err || error) && <p className="hint text-red-600">{err ?? error}</p>}
       {hint && !err && !error && <p className="hint">{hint}</p>}
     </div>
@@ -144,6 +276,7 @@ export function MultiImageUploader({
 }) {
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
+  const [linking, setLinking] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   async function handle(files: FileList | null) {
@@ -183,18 +316,7 @@ export function MultiImageUploader({
       >
         {value.map((url, i) => (
           <div key={`${url}-${i}`} className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-border bg-surface-2">
-            {isVideo(url) ? (
-              <>
-                <video src={`${url}#t=0.1`} muted playsInline preload="metadata" className="absolute inset-0 h-full w-full object-cover" />
-                <span className="absolute inset-0 grid place-items-center bg-black/25">
-                  <span className="grid size-9 place-items-center rounded-full bg-white/90 text-ink">
-                    <Play className="ms-0.5 size-4 fill-current" />
-                  </span>
-                </span>
-              </>
-            ) : (
-              <Image src={url} alt="" fill sizes="300px" className="object-cover" unoptimized />
-            )}
+            <Preview url={url} />
             <div className="absolute inset-x-0 bottom-0 flex items-center justify-between gap-1 bg-gradient-to-t from-black/70 to-transparent p-2 opacity-0 transition-opacity group-hover:opacity-100">
               <div className="flex gap-1">
                 <IconBtn title="لليمين" onClick={() => move(i, -1)} disabled={i === 0}>
@@ -205,12 +327,12 @@ export function MultiImageUploader({
                 </IconBtn>
               </div>
               <div className="flex gap-1">
-                {onSetCover && !isVideo(url) && (
+                {onSetCover && !isVideo(url) && !isEmbed(url) && (
                   <IconBtn title="استخدام كغلاف" onClick={() => onSetCover(url)}>
                     <Star className="size-3.5" />
                   </IconBtn>
                 )}
-                <IconBtn title="حذف الصورة" onClick={() => onChange(value.filter((_, k) => k !== i))} danger>
+                <IconBtn title="حذف العنصر" onClick={() => onChange(value.filter((_, k) => k !== i))} danger>
                   <Trash2 className="size-3.5" />
                 </IconBtn>
               </div>
@@ -234,7 +356,21 @@ export function MultiImageUploader({
           )}
           {busy ? "جارٍ الرفع…" : "إضافة صور أو فيديو"}
         </button>
+        <button
+          type="button"
+          onClick={() => setLinking((v) => !v)}
+          className={cn(
+            "flex aspect-[4/3] flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed text-xs transition-colors",
+            linking ? "border-brand bg-brand-soft text-brand" : "border-border bg-surface-2 text-ink-3 hover:border-brand/50",
+          )}
+        >
+          {linking ? <X className="size-6" strokeWidth={1.5} /> : <Link2 className="size-6" strokeWidth={1.5} />}
+          رابط Drive
+        </button>
       </div>
+      {linking && (
+        <LinkPanel allowVideo onAdd={(url) => onChange([...value, url])} onClose={() => setLinking(false)} />
+      )}
       <input
         ref={inputRef}
         type="file"

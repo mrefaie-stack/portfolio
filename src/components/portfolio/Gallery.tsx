@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
-import { isVideo, videoMime } from "@/lib/media";
+import { drivePoster, isEmbed, isExternal, isVideo, videoMime } from "@/lib/media";
 import { cn } from "@/lib/cn";
 
 /** معرض الوسائط الداخلية (صور + فيديو): شبكة + عارض ملء الشاشة بالأسهم ولوحة المفاتيح */
@@ -32,7 +32,9 @@ export function Gallery({ images, alt }: { images: string[]; alt: string }) {
     <>
       <div className={cn("grid gap-4", total === 1 ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3")}>
         {images.map((src, i) => {
-          const video = isVideo(src);
+          const embed = isEmbed(src);
+          const video = isVideo(src) || embed;
+          const poster = embed ? drivePoster(src) : null;
           return (
             <button
               key={`${src}-${i}`}
@@ -46,13 +48,22 @@ export function Gallery({ images, alt }: { images: string[]; alt: string }) {
             >
               {video ? (
                 <>
-                  <video
-                    src={`${src}#t=0.1`}
-                    muted
-                    playsInline
-                    preload="metadata"
-                    className="absolute inset-0 h-full w-full object-cover"
-                  />
+                  {embed ? (
+                    poster ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={poster} alt={`${alt} ${i + 1}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
+                    ) : (
+                      <span className="absolute inset-0 bg-ink/80" />
+                    )
+                  ) : (
+                    <video
+                      src={`${src}#t=0.1`}
+                      muted
+                      playsInline
+                      preload="metadata"
+                      className="absolute inset-0 h-full w-full object-cover"
+                    />
+                  )}
                   <span className="absolute inset-0 grid place-items-center bg-black/25 transition-colors group-hover:bg-black/35">
                     <span className="grid size-14 place-items-center rounded-full bg-white/90 text-ink shadow-lg backdrop-blur transition-transform group-hover:scale-105">
                       <Play className="ms-1 size-6 fill-current" />
@@ -60,6 +71,9 @@ export function Gallery({ images, alt }: { images: string[]; alt: string }) {
                   </span>
                   <span className="absolute bottom-3 right-3 rounded-md bg-black/60 px-2 py-1 text-[11px] font-medium text-white">فيديو</span>
                 </>
+              ) : isExternal(src) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={src} alt={`${alt} ${i + 1}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
               ) : (
                 <Image src={src} alt={`${alt} ${i + 1}`} fill sizes="(max-width: 1024px) 50vw, 600px" className="object-cover" />
               )}
@@ -110,7 +124,16 @@ export function Gallery({ images, alt }: { images: string[]; alt: string }) {
             </>
           )}
           <div className="relative h-[85vh] w-full max-w-6xl" onClick={(e) => e.stopPropagation()}>
-            {isVideo(images[open]) ? (
+            {isEmbed(images[open]) ? (
+              <iframe
+                key={images[open]}
+                src={images[open]}
+                title={`${alt} ${open + 1}`}
+                className="absolute inset-0 h-full w-full rounded-xl border-0 bg-black"
+                allow="autoplay; fullscreen; encrypted-media"
+                allowFullScreen
+              />
+            ) : isVideo(images[open]) ? (
               <video
                 key={images[open]}
                 controls
@@ -121,6 +144,9 @@ export function Gallery({ images, alt }: { images: string[]; alt: string }) {
                 <source src={images[open]} type={videoMime(images[open])} />
                 متصفحك لا يدعم تشغيل الفيديو.
               </video>
+            ) : isExternal(images[open]) ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={images[open]} alt={`${alt} ${open + 1}`} className="absolute inset-0 h-full w-full object-contain" />
             ) : (
               <Image src={images[open]} alt={`${alt} ${open + 1}`} fill sizes="100vw" className="object-contain" priority />
             )}

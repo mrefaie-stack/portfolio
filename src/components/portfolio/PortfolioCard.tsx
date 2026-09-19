@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays } from "lucide-react";
 import type { Portfolio } from "@/lib/types";
 import { formatMonth } from "@/lib/format";
+import { SmartMedia } from "@/components/ui/SmartMedia";
 import { cn } from "@/lib/cn";
 
 /**
@@ -22,12 +22,11 @@ export function PortfolioCard({ portfolio: p, categoryTitle }: { portfolio: Port
       {/* الغلاف + شارة المجال */}
       <Link href={href} className="relative block aspect-[530/300] w-full overflow-hidden bg-surface-2">
         {p.cover ? (
-          <Image
+          <SmartMedia
             src={p.cover}
             alt={p.clientName}
-            fill
             sizes="(max-width: 640px) 100vw, (max-width: 1280px) 50vw, 530px"
-            className="object-cover transition-transform duration-500 group-hover:scale-[1.04]"
+            className="transition-transform duration-500 group-hover:scale-[1.04]"
           />
         ) : (
           <div className="grid h-full w-full place-items-center text-sm text-ink-3">بدون صورة</div>

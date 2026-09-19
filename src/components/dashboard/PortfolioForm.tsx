@@ -362,7 +362,7 @@ export function PortfolioForm({
                 value={cover}
                 onChange={setCover}
                 label="الصورة الخارجية (الغلاف)"
-                hint="المقاس المفضّل 1060×600 أو أعرض. JPG/PNG/WebP حتى 10MB."
+                hint="المقاس المفضّل 1060×600 أو أعرض. JPG/PNG/WebP حتى 10MB، أو رابط صورة من Google Drive."
                 error={errors.cover}
               />
               <MultiImageUploader
@@ -371,7 +371,7 @@ export function PortfolioForm({
                 onChange={setGallery}
                 onSetCover={setCover}
                 label="المعرض الداخلي (صور وفيديو)"
-                hint="صور (حتى 10MB) أو فيديو MP4/WebM/MOV (حتى 100MB). اسحب عدة ملفات مرة واحدة، ومرّر على العنصر للترتيب أو الحذف أو استخدام الصورة كغلاف."
+                hint="ارفع صوراً (حتى 10MB) أو فيديو MP4/WebM/MOV (حتى 100MB)، أو الصق رابط ملف من Google Drive فيُعرض من مكانه بلا رفع. مرّر على العنصر للترتيب أو الحذف أو استخدام الصورة كغلاف."
               />
             </div>
           </Section>

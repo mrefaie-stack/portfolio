@@ -1,5 +1,6 @@
-import Image from "next/image";
 import type { SiteSettings } from "@/lib/types";
+import { isEmbed } from "@/lib/media";
+import { SmartMedia } from "@/components/ui/SmartMedia";
 import { HeroVideo } from "./HeroVideo";
 import { CountUp } from "@/components/ui/CountUp";
 
@@ -10,7 +11,9 @@ import { CountUp } from "@/components/ui/CountUp";
  */
 export function Hero({ hero }: { hero: SiteSettings["hero"] }) {
   const stats = hero.stats.filter((s) => s.value && s.label);
-  const video = hero.video?.trim();
+  // فيديو الخلفية لا بد أن يكون ملفاً يُشغَّل صامتاً — مشغّل Drive المضمّن لا يصلح خلفية
+  const raw = hero.video?.trim();
+  const video = raw && !isEmbed(raw) ? raw : "";
   return (
     <section className="mx-auto w-full max-w-[1920px] px-4 pt-6 sm:px-8 lg:pt-[60px] xl:px-[140px]">
       <div className="relative overflow-hidden rounded-[24px] lg:rounded-hero">
@@ -18,14 +21,7 @@ export function Hero({ hero }: { hero: SiteSettings["hero"] }) {
           {video ? (
             <HeroVideo src={video} poster={hero.image} />
           ) : (
-            <Image
-              src={hero.image}
-              alt=""
-              fill
-              priority
-              sizes="(max-width: 1920px) 100vw, 1640px"
-              className="hero-zoom object-cover"
-            />
+            <SmartMedia src={hero.image} priority sizes="(max-width: 1920px) 100vw, 1640px" className="hero-zoom" />
           )}
           <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(0,0,0,0.10)_0%,rgba(0,0,0,0.20)_55%,rgba(0,0,0,0.75)_100%)]" />
         </div>

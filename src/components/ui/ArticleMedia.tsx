@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, Play } from "lucide-react";
-import { isVideo, videoMime } from "@/lib/media";
+import { drivePoster, isEmbed, isExternal, isVideo } from "@/lib/media";
+import { SmartMedia } from "./SmartMedia";
 import { cn } from "@/lib/cn";
 
 export type MediaItem = { src: string; alt: string };
@@ -24,20 +25,7 @@ export function ArticleMedia({ items }: { items: MediaItem[] }) {
     <figure className="not-prose mx-auto my-8 w-full max-w-[680px]">
       <div className="relative overflow-hidden rounded-2xl border border-border bg-surface-2">
         <div className="relative aspect-[16/9] w-full">
-          {isVideo(cur.src) ? (
-            <video key={cur.src} controls playsInline preload="metadata" className="absolute inset-0 h-full w-full bg-black object-contain">
-              <source src={cur.src} type={videoMime(cur.src)} />
-            </video>
-          ) : (
-            <Image
-              key={cur.src}
-              src={cur.src}
-              alt={cur.alt}
-              fill
-              sizes="(max-width: 768px) 100vw, 680px"
-              className="object-contain"
-            />
-          )}
+          <SmartMedia key={cur.src} src={cur.src} alt={cur.alt} fit="contain" sizes="(max-width: 768px) 100vw, 680px" />
         </div>
 
         {many && (
@@ -78,10 +66,19 @@ export function ArticleMedia({ items }: { items: MediaItem[] }) {
                 k === i ? "border-brand ring-2 ring-brand/30" : "border-border opacity-70 hover:opacity-100",
               )}
             >
-              {isVideo(it.src) ? (
-                <span className="grid h-full w-full place-items-center bg-black/80 text-white">
-                  <Play className="size-4 fill-current" />
-                </span>
+              {isVideo(it.src) || isEmbed(it.src) ? (
+                <>
+                  {isEmbed(it.src) && drivePoster(it.src, 200) && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={drivePoster(it.src, 200)!} alt="" className="absolute inset-0 h-full w-full object-cover" />
+                  )}
+                  <span className="absolute inset-0 grid place-items-center bg-black/70 text-white">
+                    <Play className="size-4 fill-current" />
+                  </span>
+                </>
+              ) : isExternal(it.src) ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={it.src} alt="" className="absolute inset-0 h-full w-full object-cover" />
               ) : (
                 <Image src={it.src} alt="" fill sizes="48px" className="object-cover" />
               )}

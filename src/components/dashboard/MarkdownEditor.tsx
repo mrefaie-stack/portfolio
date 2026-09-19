@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Bold, Clapperboard, Heading2, Heading3, ImagePlus, Link2, List, ListOrdered, Loader2, Quote } from "lucide-react";
-import { isVideo } from "@/lib/media";
+import { isVideo, isEmbed, LINK_ERROR, normalizeMediaUrl, type MediaKind } from "@/lib/media";
 import { Markdown } from "@/components/ui/Markdown";
 import { cn } from "@/lib/cn";
 
@@ -13,6 +13,10 @@ import { cn } from "@/lib/cn";
 export function MarkdownEditor({ name, value, onChange }: { name: string; value: string; onChange: (v: string) => void }) {
   const [tab, setTab] = useState<"write" | "preview">("write");
   const [busy, setBusy] = useState(false);
+  const [linking, setLinking] = useState(false);
+  const [link, setLink] = useState("");
+  const [linkKind, setLinkKind] = useState<MediaKind>("image");
+  const [linkError, setLinkError] = useState<string | null>(null);
   const ref = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -67,6 +71,24 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
   }
 
   type Tool = "h2" | "h3" | "bold" | "ul" | "ol" | "quote" | "link";
+  function insertAtCursor(md: string) {
+    const el = ref.current;
+    const s = el?.selectionStart ?? value.length;
+    onChange(value.slice(0, s) + md + value.slice(s));
+  }
+
+  function insertLink() {
+    const url = normalizeMediaUrl(link, linkKind);
+    if (!url) {
+      setLinkError(LINK_ERROR);
+      return;
+    }
+    insertAtCursor(`\n![${isEmbed(url) || linkKind === "video" ? "فيديو" : "صورة"}](${url})\n`);
+    setLink("");
+    setLinkError(null);
+    setLinking(false);
+  }
+
   const tools: { id: Tool; title: string; icon: typeof Bold }[] = [
     { id: "h2", title: "عنوان رئيسي", icon: Heading2 },
     { id: "h3", title: "عنوان فرعي", icon: Heading3 },
@@ -126,6 +148,19 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
           >
             {busy ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}
           </button>
+          <button
+            type="button"
+            title="إدراج صورة أو فيديو برابط Google Drive (بلا رفع)"
+            aria-label="إدراج رابط وسائط"
+            onClick={() => setLinking((v) => !v)}
+            disabled={tab === "preview"}
+            className={cn(
+              "grid size-8 place-items-center rounded-md transition-colors disabled:opacity-40",
+              linking ? "bg-brand-soft text-brand" : "text-ink-2 hover:bg-surface hover:text-ink",
+            )}
+          >
+            <Link2 className="size-4" />
+          </button>
           <span className="hidden items-center gap-1 px-1 text-[11px] text-ink-3 sm:inline-flex" title="يمكن إدراج فيديو داخل المقالة">
             <Clapperboard className="size-3.5" />
             صور وفيديو
@@ -152,6 +187,54 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
           ))}
         </div>
       </div>
+
+      {linking && tab === "write" && (
+        <div className="border-b border-border-soft bg-surface-2/40 p-3">
+          <div className="mb-2 flex w-fit gap-1 rounded-lg bg-surface p-1 text-xs">
+            {(["image", "video"] as const).map((k) => (
+              <button
+                key={k}
+                type="button"
+                onClick={() => setLinkKind(k)}
+                className={cn(
+                  "rounded-md px-3 py-1.5 transition-colors",
+                  linkKind === k ? "bg-ink text-white dark:bg-white dark:text-black" : "text-ink-2",
+                )}
+              >
+                {k === "image" ? "صورة" : "فيديو"}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2">
+            <input
+              value={link}
+              onChange={(e) => setLink(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  insertLink();
+                }
+              }}
+              dir="ltr"
+              placeholder="https://drive.google.com/file/d/…/view"
+              className="field h-10 min-w-0 flex-1 text-left"
+            />
+            <button
+              type="button"
+              onClick={insertLink}
+              disabled={!link.trim()}
+              className="h-10 shrink-0 rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-[#e62d00] disabled:opacity-50"
+            >
+              إدراج
+            </button>
+          </div>
+          {linkError ? (
+            <p className="hint text-red-600">{linkError}</p>
+          ) : (
+            <p className="hint">شارِك الملف على Drive بـ «أي شخص لديه الرابط» ثم الصق الرابط هنا.</p>
+          )}
+        </div>
+      )}
 
       <textarea name={name} value={value} onChange={(e) => onChange(e.target.value)} className="hidden" readOnly hidden />
 
