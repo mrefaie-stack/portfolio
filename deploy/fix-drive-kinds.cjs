@@ -32,7 +32,10 @@ async function kindOf(id) {
   });
   const html = await res.text();
   const title = (/<title>([^<]*)<\/title>/i.exec(html) || [, ""])[1];
-  const name = title.replace(/\s*-\s*Google Drive\s*$/i, "").trim();
+  const name = title
+    .replace(/ /g, " ")
+    .replace(/\s*[-–]\s*Google Drive\s*$/i, "")
+    .trim();
   const lower = name.toLowerCase();
   const kind = VIDEO_EXTS.some((e) => lower.endsWith(e))
     ? "video"

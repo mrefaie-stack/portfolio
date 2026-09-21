@@ -29,7 +29,11 @@ export async function POST(req: Request) {
     const html = await res.text();
     const title = /<title>([^<]*)<\/title>/i.exec(html)?.[1] ?? "";
     // "tower design 3.mp4 - Google Drive" → "tower design 3.mp4"
-    const name = title.replace(/\s*-\s*Google Drive\s*$/i, "").trim();
+    // Drive يستخدم مسافة غير قابلة للكسر داخل "Google Drive"
+    const name = title
+      .replace(/ /g, " ")
+      .replace(/\s*[-–]\s*Google Drive\s*$/i, "")
+      .trim();
     const lower = name.toLowerCase();
 
     // صفحة تسجيل الدخول تعني أن الملف غير مشارَك للعامة
