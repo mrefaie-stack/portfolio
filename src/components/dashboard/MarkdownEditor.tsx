@@ -83,7 +83,7 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
     setLinkError(null);
     try {
       const { url, kind } = await resolveMediaLink(link);
-      insertAtCursor(`\n![${kind === "video" ? "فيديو" : "صورة"}](${url})\n`);
+      insertAtCursor(`\n![${kind === "video" ? "فيديو" : kind === "doc" ? "مستند" : "صورة"}](${url})\n`);
       setLink("");
       setLinking(false);
     } catch (e) {
@@ -221,7 +221,7 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
           {linkError ? (
             <p className="hint text-red-600">{linkError}</p>
           ) : (
-            <p className="hint">الصق رابط الملف من Drive — يتعرّف تلقائياً إن كان صورة أو فيديو. تأكد أنه مشارَك بـ «أي شخص لديه الرابط».</p>
+            <p className="hint">الصق رابط الملف من Drive — يتعرّف تلقائياً إن كان صورة أو فيديو أو PDF. تأكد أنه مشارَك بـ «أي شخص لديه الرابط».</p>
           )}
         </div>
       )}

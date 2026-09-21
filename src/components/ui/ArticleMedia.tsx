@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Play } from "lucide-react";
-import { drivePoster, isEmbed, isExternal, isVideo } from "@/lib/media";
+import { ChevronLeft, ChevronRight, FileText, Play } from "lucide-react";
+import { drivePoster, isDoc, isEmbed, isExternal, isVideo } from "@/lib/media";
 import { SmartMedia } from "./SmartMedia";
 import { cn } from "@/lib/cn";
 
@@ -24,7 +24,7 @@ export function ArticleMedia({ items }: { items: MediaItem[] }) {
   return (
     <figure className="not-prose mx-auto my-8 w-full max-w-[680px]">
       <div className="relative overflow-hidden rounded-2xl border border-border bg-surface-2">
-        <div className="relative aspect-[16/9] w-full">
+        <div className={cn("relative w-full", isDoc(cur.src) ? "aspect-[3/4]" : "aspect-[16/9]")}>
           <SmartMedia key={cur.src} src={cur.src} alt={cur.alt} fit="contain" sizes="(max-width: 768px) 100vw, 680px" />
         </div>
 
@@ -66,7 +66,17 @@ export function ArticleMedia({ items }: { items: MediaItem[] }) {
                 k === i ? "border-brand ring-2 ring-brand/30" : "border-border opacity-70 hover:opacity-100",
               )}
             >
-              {isVideo(it.src) || isEmbed(it.src) ? (
+              {isDoc(it.src) ? (
+                <>
+                  {drivePoster(it.src, 200) && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={drivePoster(it.src, 200)!} alt="" className="absolute inset-0 h-full w-full object-cover object-top" />
+                  )}
+                  <span className="absolute inset-0 grid place-items-center bg-black/45 text-white">
+                    <FileText className="size-4" />
+                  </span>
+                </>
+              ) : isVideo(it.src) || isEmbed(it.src) ? (
                 <>
                   {isEmbed(it.src) && drivePoster(it.src, 200) && (
                     // eslint-disable-next-line @next/next/no-img-element

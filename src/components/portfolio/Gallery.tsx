@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Image from "next/image";
-import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
-import { drivePoster, isEmbed, isExternal, isVideo, videoMime } from "@/lib/media";
+import { ChevronLeft, ChevronRight, FileText, Play, X } from "lucide-react";
+import { drivePoster, isDoc, isEmbed, isExternal, isVideo, videoMime } from "@/lib/media";
 import { cn } from "@/lib/cn";
 
 /** معرض الوسائط الداخلية (صور + فيديو): شبكة + عارض ملء الشاشة بالأسهم ولوحة المفاتيح */
@@ -33,7 +33,8 @@ export function Gallery({ images, alt }: { images: string[]; alt: string }) {
       <div className={cn("grid gap-4", total === 1 ? "grid-cols-1" : "grid-cols-2 lg:grid-cols-3")}>
         {images.map((src, i) => {
           const embed = isEmbed(src);
-          const video = isVideo(src) || embed;
+          const doc = isDoc(src);
+          const video = (isVideo(src) || embed) && !doc;
           const poster = embed ? drivePoster(src) : null;
           return (
             <button
@@ -44,9 +45,23 @@ export function Gallery({ images, alt }: { images: string[]; alt: string }) {
                 "group relative overflow-hidden rounded-2xl bg-surface-2 ring-1 ring-border transition hover:opacity-95",
                 total === 1 ? "aspect-[16/9]" : i === 0 && total >= 3 ? "col-span-2 aspect-[16/9]" : "aspect-[4/3]",
               )}
-              aria-label={video ? `تشغيل الفيديو ${i + 1}` : `عرض الصورة ${i + 1}`}
+              aria-label={doc ? `فتح المستند ${i + 1}` : video ? `تشغيل الفيديو ${i + 1}` : `عرض الصورة ${i + 1}`}
             >
-              {video ? (
+              {doc ? (
+                <>
+                  {poster ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={poster} alt={`${alt} ${i + 1}`} loading="lazy" className="absolute inset-0 h-full w-full object-cover object-top" />
+                  ) : (
+                    <span className="absolute inset-0 bg-surface-2" />
+                  )}
+                  <span className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+                  <span className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-md bg-white/90 px-2.5 py-1 text-[11px] font-medium text-ink shadow-sm backdrop-blur">
+                    <FileText className="size-3.5" />
+                    مستند
+                  </span>
+                </>
+              ) : video ? (
                 <>
                   {embed ? (
                     poster ? (
@@ -123,13 +138,16 @@ export function Gallery({ images, alt }: { images: string[]; alt: string }) {
               </button>
             </>
           )}
-          <div className="relative h-[85vh] w-full max-w-6xl" onClick={(e) => e.stopPropagation()}>
+          <div
+            className={cn("relative h-[85vh] w-full", isDoc(images[open]) ? "max-w-3xl" : "max-w-6xl")}
+            onClick={(e) => e.stopPropagation()}
+          >
             {isEmbed(images[open]) ? (
               <iframe
                 key={images[open]}
                 src={images[open]}
                 title={`${alt} ${open + 1}`}
-                className="absolute inset-0 h-full w-full rounded-xl border-0 bg-black"
+                className={cn("absolute inset-0 h-full w-full rounded-xl border-0", isDoc(images[open]) ? "bg-surface" : "bg-black")}
                 allow="autoplay; fullscreen; encrypted-media"
                 allowFullScreen
               />

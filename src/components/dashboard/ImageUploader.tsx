@@ -37,8 +37,8 @@ function LinkPanel({
     setError(null);
     try {
       const { url, kind } = await resolveMediaLink(link);
-      if (kind === "video" && !allowVideo) {
-        setError("هذا الملف فيديو — استخدمه في المعرض، أما هنا فصورة فقط.");
+      if (kind !== "image" && !allowVideo) {
+        setError(kind === "doc" ? "هذا مستند — استخدمه في المعرض، أما هنا فصورة فقط." : "هذا الملف فيديو — استخدمه في المعرض، أما هنا فصورة فقط.");
         return;
       }
       onAdd(url);
@@ -82,7 +82,7 @@ function LinkPanel({
         <p className="hint text-red-600">{error}</p>
       ) : (
         <p className="hint">
-          الصق رابط الملف من Drive — يتعرّف تلقائياً إن كان صورة أو فيديو. تأكد أنه مشارَك بـ «أي شخص لديه الرابط».
+          الصق رابط الملف من Drive — يتعرّف تلقائياً إن كان صورة أو فيديو أو PDF. تأكد أنه مشارَك بـ «أي شخص لديه الرابط».
         </p>
       )}
     </div>

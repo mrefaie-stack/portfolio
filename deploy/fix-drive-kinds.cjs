@@ -12,6 +12,7 @@ const path = require("path");
 const APPLY = process.argv.includes("--apply");
 const VIDEO_EXTS = [".mp4", ".webm", ".mov", ".m4v"];
 const IMAGE_EXTS = [".jpg", ".jpeg", ".png", ".webp", ".gif", ".avif", ".heic", ".heif", ".bmp", ".tif", ".tiff"];
+const DOC_EXTS = [".pdf"];
 
 function driveId(url) {
   if (typeof url !== "string") return null;
@@ -37,11 +38,20 @@ async function kindOf(id) {
     .replace(/\s*[-–]\s*Google Drive\s*$/i, "")
     .trim();
   const lower = name.toLowerCase();
-  const kind = VIDEO_EXTS.some((e) => lower.endsWith(e))
+  let kind = VIDEO_EXTS.some((e) => lower.endsWith(e))
     ? "video"
-    : IMAGE_EXTS.some((e) => lower.endsWith(e))
-      ? "image"
-      : null;
+    : DOC_EXTS.some((e) => lower.endsWith(e))
+      ? "doc"
+      : IMAGE_EXTS.some((e) => lower.endsWith(e))
+        ? "image"
+        : null;
+
+  // بلا امتداد: نستدل من نوع الصورة المصغّرة
+  if (!kind) {
+    const t = await fetch(`https://drive.google.com/thumbnail?id=${id}&sz=w200`, { redirect: "follow" }).catch(() => null);
+    if (t && t.ok && (t.headers.get("content-type") || "").startsWith("image/")) kind = "image";
+  }
+
   const out = { kind, name };
   cache.set(id, out);
   return out;
@@ -50,7 +60,9 @@ async function kindOf(id) {
 const urlFor = (id, kind) =>
   kind === "video"
     ? `https://drive.google.com/file/d/${id}/preview`
-    : `https://drive.google.com/thumbnail?id=${id}&sz=w1600`;
+    : kind === "doc"
+      ? `https://drive.google.com/file/d/${id}/preview?mk=doc`
+      : `https://drive.google.com/thumbnail?id=${id}&sz=w1600`;
 
 let changes = 0;
 let skipped = 0;
@@ -66,7 +78,8 @@ async function fixUrl(url, where) {
   }
   const next = urlFor(id, kind);
   if (next !== url) {
-    console.log(`  ✓  ${where}: «${name}» → ${kind === "video" ? "فيديو (مشغّل)" : "صورة"}`);
+    const label = kind === "video" ? "فيديو (مشغّل)" : kind === "doc" ? "مستند (معاينة)" : "صورة";
+    console.log(`  ✓  ${where}: «${name}» → ${label}`);
     changes++;
   }
   return next;
@@ -82,7 +95,7 @@ async function fixPortfolios() {
       // الغلاف لا يصلح أن يكون مشغّل فيديو
       if (fixed.includes("/preview")) {
         const id = driveId(fixed);
-        console.log(`  !  ${p.clientName} / الغلاف: فيديو لا يصلح غلافاً — استُخدمت صورته المصغّرة`);
+        console.log(`  !  ${p.clientName} / الغلاف: ${fixed.includes("mk=doc") ? "مستند" : "فيديو"} لا يصلح غلافاً — استُخدمت صورته المصغّرة`);
         p.cover = urlFor(id, "image");
       } else {
         p.cover = fixed;
@@ -100,7 +113,7 @@ async function fixPortfolios() {
       for (const [full, alt, url] of links) {
         const fixed = await fixUrl(url, `${p.clientName} / المقالة`);
         if (fixed !== url) {
-          const label = fixed.includes("/preview") ? "فيديو" : alt || "صورة";
+          const label = fixed.includes("mk=doc") ? "مستند" : fixed.includes("/preview") ? "فيديو" : alt || "صورة";
           p.body = p.body.replace(full, `![${label}](${fixed})`);
         }
       }

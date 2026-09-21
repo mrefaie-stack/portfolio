@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { isAdmin } from "@/lib/auth/server";
-import { driveFileId, VIDEO_EXTS } from "@/lib/media";
+import { DOC_EXTS, driveFileId, VIDEO_EXTS } from "@/lib/media";
 
 export const runtime = "nodejs";
 
@@ -44,14 +44,26 @@ export async function POST(req: Request) {
       );
     }
 
-    const kind = VIDEO_EXTS.some((e) => lower.endsWith(e))
+    let kind: "image" | "video" | "doc" | null = VIDEO_EXTS.some((e) => lower.endsWith(e))
       ? "video"
-      : IMAGE_EXTS.some((e) => lower.endsWith(e))
-        ? "image"
-        : null;
+      : DOC_EXTS.some((e) => lower.endsWith(e))
+        ? "doc"
+        : IMAGE_EXTS.some((e) => lower.endsWith(e))
+          ? "image"
+          : null;
+
+    // ملف بلا امتداد في اسمه: نسأل Drive عن صورته المصغّرة ونستدل من نوعها
+    if (!kind) {
+      const thumb = await fetch(`https://drive.google.com/thumbnail?id=${id}&sz=w200`, {
+        redirect: "follow",
+        signal: AbortSignal.timeout(10_000),
+      }).catch(() => null);
+      const type = thumb?.headers.get("content-type") ?? "";
+      if (thumb?.ok && type.startsWith("image/")) kind = "image";
+    }
 
     if (!kind) {
-      return NextResponse.json({ error: `«${name}» ليس صورة ولا فيديو مدعوماً`, name }, { status: 415 });
+      return NextResponse.json({ error: `«${name}» ليس صورة ولا فيديو ولا PDF`, name }, { status: 415 });
     }
 
     return NextResponse.json({ kind, name, id });

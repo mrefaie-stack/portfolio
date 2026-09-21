@@ -371,7 +371,7 @@ export function PortfolioForm({
                 onChange={setGallery}
                 onSetCover={setCover}
                 label="المعرض الداخلي (صور وفيديو)"
-                hint="ارفع صوراً (حتى 10MB) أو فيديو MP4/WebM/MOV (حتى 100MB)، أو الصق رابط ملف من Google Drive فيُعرض من مكانه بلا رفع. مرّر على العنصر للترتيب أو الحذف أو استخدام الصورة كغلاف."
+                hint="ارفع صوراً (حتى 10MB) أو فيديو MP4/WebM/MOV (حتى 100MB)، أو الصق رابط ملف من Google Drive (صورة أو فيديو أو PDF) فيُعرض من مكانه بلا رفع. مرّر على العنصر للترتيب أو الحذف أو استخدام الصورة كغلاف."
               />
             </div>
           </Section>
