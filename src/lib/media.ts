@@ -73,6 +73,34 @@ export function normalizeMediaUrl(input: string, kind: MediaKind): string | null
   return url;
 }
 
+/**
+ * يحوّل رابطاً ملصوقاً إلى رابط عرض جاهز، ويكتشف نوع ملف Drive تلقائياً
+ * (صورة أم فيديو) بسؤال الخادم عن اسم الملف. يرمي خطأً برسالة عربية عند الفشل.
+ */
+export async function resolveMediaLink(input: string): Promise<{ url: string; kind: MediaKind }> {
+  const raw = input.trim();
+  if (!raw) throw new Error(LINK_ERROR);
+
+  const id = driveFileId(raw);
+  if (!id) {
+    const url = normalizeMediaUrl(raw, isVideo(raw) ? "video" : "image");
+    if (!url) throw new Error(LINK_ERROR);
+    return { url, kind: isVideo(url) ? "video" : "image" };
+  }
+
+  const res = await fetch("/api/drive-probe", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ url: raw }),
+  });
+  const data = (await res.json().catch(() => ({}))) as { kind?: MediaKind; error?: string };
+  if (!res.ok || !data.kind) throw new Error(data.error ?? "تعذّر التعرّف على الملف");
+
+  const url = normalizeMediaUrl(raw, data.kind);
+  if (!url) throw new Error(LINK_ERROR);
+  return { url, kind: data.kind };
+}
+
 /** رسالة الخطأ الموحّدة عند رابط غير مفهوم */
 export const LINK_ERROR =
   "الرابط غير مفهوم. الصق رابط ملف من Google Drive (مشارَك بـ «أي شخص لديه الرابط») أو رابطاً مباشراً لصورة أو فيديو.";

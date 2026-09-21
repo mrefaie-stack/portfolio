@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import Image from "next/image";
 import { Check, Clapperboard, ImagePlus, Link2, Loader2, MoveLeft, MoveRight, Play, Star, Trash2, X } from "lucide-react";
-import { drivePoster, isEmbed, isExternal, isVideo, LINK_ERROR, normalizeMediaUrl, type MediaKind } from "@/lib/media";
+import { drivePoster, isEmbed, isExternal, isVideo, resolveMediaLink } from "@/lib/media";
 import { cn } from "@/lib/cn";
 
 async function upload(files: FileList | File[], kind: "image" | "media" = "image"): Promise<string[]> {
@@ -28,40 +28,31 @@ function LinkPanel({
   onClose: () => void;
 }) {
   const [link, setLink] = useState("");
-  const [kind, setKind] = useState<MediaKind>("image");
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  function submit() {
-    const url = normalizeMediaUrl(link, allowVideo ? kind : "image");
-    if (!url) {
-      setError(LINK_ERROR);
-      return;
-    }
-    onAdd(url);
-    setLink("");
+  async function submit() {
+    if (busy) return;
+    setBusy(true);
     setError(null);
-    onClose();
+    try {
+      const { url, kind } = await resolveMediaLink(link);
+      if (kind === "video" && !allowVideo) {
+        setError("هذا الملف فيديو — استخدمه في المعرض، أما هنا فصورة فقط.");
+        return;
+      }
+      onAdd(url);
+      setLink("");
+      onClose();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+    }
   }
 
   return (
     <div className="mt-3 rounded-xl border border-border bg-surface-2/60 p-3">
-      {allowVideo && (
-        <div className="mb-2 flex w-fit gap-1 rounded-lg bg-surface p-1 text-xs">
-          {(["image", "video"] as const).map((k) => (
-            <button
-              key={k}
-              type="button"
-              onClick={() => setKind(k)}
-              className={cn(
-                "rounded-md px-3 py-1.5 transition-colors",
-                kind === k ? "bg-ink text-white dark:bg-white dark:text-black" : "text-ink-2",
-              )}
-            >
-              {k === "image" ? "صورة" : "فيديو"}
-            </button>
-          ))}
-        </div>
-      )}
       <div className="flex gap-2">
         <input
           value={link}
@@ -69,7 +60,7 @@ function LinkPanel({
           onKeyDown={(e) => {
             if (e.key === "Enter") {
               e.preventDefault();
-              submit();
+              void submit();
             }
           }}
           dir="ltr"
@@ -79,19 +70,19 @@ function LinkPanel({
         />
         <button
           type="button"
-          onClick={submit}
-          disabled={!link.trim()}
+          onClick={() => void submit()}
+          disabled={busy || !link.trim()}
           className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-3.5 text-sm font-medium text-white hover:bg-[#e62d00] disabled:opacity-50"
         >
-          <Check className="size-4" />
-          إضافة
+          {busy ? <Loader2 className="size-4 animate-spin" /> : <Check className="size-4" />}
+          {busy ? "جارٍ الفحص…" : "إضافة"}
         </button>
       </div>
       {error ? (
         <p className="hint text-red-600">{error}</p>
       ) : (
         <p className="hint">
-          من Drive: زر «مشاركة» ← «أي شخص لديه الرابط» ← انسخ الرابط والصقه هنا. لا يُرفع الملف على السيرفر.
+          الصق رابط الملف من Drive — يتعرّف تلقائياً إن كان صورة أو فيديو. تأكد أنه مشارَك بـ «أي شخص لديه الرابط».
         </p>
       )}
     </div>

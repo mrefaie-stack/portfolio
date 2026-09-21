@@ -2,7 +2,7 @@
 
 import { useRef, useState } from "react";
 import { Bold, Clapperboard, Heading2, Heading3, ImagePlus, Link2, List, ListOrdered, Loader2, Quote } from "lucide-react";
-import { isVideo, isEmbed, LINK_ERROR, normalizeMediaUrl, type MediaKind } from "@/lib/media";
+import { isVideo, resolveMediaLink } from "@/lib/media";
 import { Markdown } from "@/components/ui/Markdown";
 import { cn } from "@/lib/cn";
 
@@ -15,7 +15,7 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
   const [busy, setBusy] = useState(false);
   const [linking, setLinking] = useState(false);
   const [link, setLink] = useState("");
-  const [linkKind, setLinkKind] = useState<MediaKind>("image");
+  const [linkBusy, setLinkBusy] = useState(false);
   const [linkError, setLinkError] = useState<string | null>(null);
   const ref = useRef<HTMLTextAreaElement>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -77,16 +77,20 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
     onChange(value.slice(0, s) + md + value.slice(s));
   }
 
-  function insertLink() {
-    const url = normalizeMediaUrl(link, linkKind);
-    if (!url) {
-      setLinkError(LINK_ERROR);
-      return;
-    }
-    insertAtCursor(`\n![${isEmbed(url) || linkKind === "video" ? "فيديو" : "صورة"}](${url})\n`);
-    setLink("");
+  async function insertLink() {
+    if (linkBusy) return;
+    setLinkBusy(true);
     setLinkError(null);
-    setLinking(false);
+    try {
+      const { url, kind } = await resolveMediaLink(link);
+      insertAtCursor(`\n![${kind === "video" ? "فيديو" : "صورة"}](${url})\n`);
+      setLink("");
+      setLinking(false);
+    } catch (e) {
+      setLinkError((e as Error).message);
+    } finally {
+      setLinkBusy(false);
+    }
   }
 
   const tools: { id: Tool; title: string; icon: typeof Bold }[] = [
@@ -190,21 +194,6 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
 
       {linking && tab === "write" && (
         <div className="border-b border-border-soft bg-surface-2/40 p-3">
-          <div className="mb-2 flex w-fit gap-1 rounded-lg bg-surface p-1 text-xs">
-            {(["image", "video"] as const).map((k) => (
-              <button
-                key={k}
-                type="button"
-                onClick={() => setLinkKind(k)}
-                className={cn(
-                  "rounded-md px-3 py-1.5 transition-colors",
-                  linkKind === k ? "bg-ink text-white dark:bg-white dark:text-black" : "text-ink-2",
-                )}
-              >
-                {k === "image" ? "صورة" : "فيديو"}
-              </button>
-            ))}
-          </div>
           <div className="flex gap-2">
             <input
               value={link}
@@ -212,7 +201,7 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
                   e.preventDefault();
-                  insertLink();
+                  void insertLink();
                 }
               }}
               dir="ltr"
@@ -221,17 +210,18 @@ export function MarkdownEditor({ name, value, onChange }: { name: string; value:
             />
             <button
               type="button"
-              onClick={insertLink}
-              disabled={!link.trim()}
-              className="h-10 shrink-0 rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-[#e62d00] disabled:opacity-50"
+              onClick={() => void insertLink()}
+              disabled={linkBusy || !link.trim()}
+              className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-lg bg-brand px-4 text-sm font-medium text-white hover:bg-[#e62d00] disabled:opacity-50"
             >
-              إدراج
+              {linkBusy && <Loader2 className="size-4 animate-spin" />}
+              {linkBusy ? "جارٍ الفحص…" : "إدراج"}
             </button>
           </div>
           {linkError ? (
             <p className="hint text-red-600">{linkError}</p>
           ) : (
-            <p className="hint">شارِك الملف على Drive بـ «أي شخص لديه الرابط» ثم الصق الرابط هنا.</p>
+            <p className="hint">الصق رابط الملف من Drive — يتعرّف تلقائياً إن كان صورة أو فيديو. تأكد أنه مشارَك بـ «أي شخص لديه الرابط».</p>
           )}
         </div>
       )}
